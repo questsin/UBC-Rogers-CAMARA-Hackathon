@@ -1,0 +1,339 @@
+openapi: 3.0.3
+info:
+  title: Number Verification
+  description: |
+    Service Enabling Network Function API to verify that the provided **mobile phone number** is the one used in the device. It verifies that the user is using a device with the same *mobile phone number* as it is declared.
+    It also makes it possible for a Service provider to verify the number itself by returning the phone number associated to the authenticated user's access token.
+
+    In this API **phone number** term refers to the mobile phone number.
+
+    # Introduction
+
+    Number Verification API performs real-time checks to verify the phone number of the mobile device being used to access a service provider (SP) service, where the mobile device is accessing the *service provider* over a mobile network (WiFi connections are out of this API scope) either by getting the comparison result or receiving the phone number of the device that it is used, so they can verify it themselves.
+
+    It uses direct mobile network connections to verify possession of a phone number in the background without requiring user interaction. There are neither OTPs (One-time passwords) received by SMS nor authenticator app downloads, so it is much simpler. It can be used at sign up, login, or transaction time to validate that a user's SIM (Subscriber Identity Module) is both actively connected to the mobile network and not spoofed or cloned.
+
+
+    # Relevant Definitions and Concepts
+
+    - **Network-Based Authentication**: Authentication mechanism based on the identification of the endpoint of a network connection. Network operators know to which subscriber a network resource is assigned at a given moment, for example the mobile phone number associated to a specific mobile network connection.
+
+    # API Functionality
+
+    This enables a Service Provider (SP) to verify the phone number of the mobile device being used to access their service where the mobile device is accessing the *service provider* over a mobile network (WiFi connections are out of this API scope). This can happen either by getting the comparison result or receiving the phone number of the device that is used, so they can verify it themselves.
+
+    # Resources and Operations overview
+    This API currently provides two endpoints where both require a **3-legged token** and authentication via **mobile network** (**excluding** for example by SMS/OTP or user/password as an authentication method):
+    - The first one checks if the user mobile phone number matches the phone number associated with the mobile device. It can receive either a hashed or a plain text phone number as input and it compares the received input with the authenticated user's phone number associated to the access token in order to respond **true/false**.
+    - The next one retrieves the phone number associated to the user's token and returns it so the verification can be made by the service provider.
+
+    # Sequence Diagram
+    Number Verification API uses the **standard [OIDC Authorization Code Flow](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)**. The following diagram will help to clarify the end-to-end process, including previous steps prior to this API call.
+
+    Note that the diagram shows just an example of a direct integration from developer's application and MNO's authserver and API, other scenarios of indirect integration via Aggregator/Channel Partner should also be considered. Specific authorization flows may apply, as defined by e.g. GSMA Open Gateway (OGW).
+
+    ![UML Sequence Diagram](https://raw.githubusercontent.com/camaraproject/NumberVerification/main/documentation/API_documentation/assets/uml_v0.3.jpg)
+
+    **Additional details:**
+
+    - **(1):** Authentication must be automatic without any user interactions. Authentication methods such as SMS OTP or user/password are incompatible, as the goal is to validate the mobile phone number that is accessing the App. So it is required to be authentication via mobile network and without the user being involved. the use of parameter prompt=none, as described in **[OIDC Connect](https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest)**, ensures no user interaction.
+
+    - **(2):** The way in which the phone_number is retrieved depends on the implementation. For example, access token may be a self contained encrypted JWT, so API can decrypt and identify phone_number. Some other implementations might request the phone_number associated to the token from Authserver.
+
+    # Authorization and authentication
+
+    The "Camara Security and Interoperability Profile" provides details on how a client requests an access token. Please refer to Identify and Consent Management (https://github.com/camaraproject/IdentityAndConsentManagement/) for the released version of the Profile.
+
+    Which specific authorization flows are to be used will be determined during onboarding process, happening between the API Client and the Telco Operator exposing the API, taking into account the declared purpose for accessing the API, while also being subject to the prevailing legal framework dictated by local legislation.
+
+    It is important to remark that in cases where personal user data is processed by the API, and users can exercise their rights through mechanisms such as opt-in and/or opt-out, the use of 3-legged access tokens becomes mandatory. This measure ensures that the API remains in strict compliance with user privacy preferences and regulatory obligations, upholding the principles of transparency and user-centric data control.
+
+    In the case of the Number Verification API scenario and according to the API definition, 3-legged access tokens must be used by API clients to invoke this API with dedicated scope. The API client must authenticate on behalf of a specific user to use this service. This must be done via mobile network authentication.
+
+    # Further info and support
+    [GSMA Mobile Connect Verified MSISDN specification](https://www.gsma.com/identity/wp-content/uploads/2022/12/IDY.54-Mobile-Connect-Verified-MSISDN-Definition-and-Technical-Requirements-1.0.pdf) was used as source of input for this API.  For more about Mobile Connect, please see [Mobile Connect website](https://mobileconnect.io/).
+  version: 1.0.0
+  x-camara-commonalities: 0.4.0
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: '{apiRoot}/number-verification/v1'
+    variables:
+      apiRoot:
+        default: http://localhost:9091
+        description: API root, defined by the service provider, e.g. `api.example.com` or `api.example.com/somepath
+tags:
+  - name: Phone number verify
+    description: API operation to verify a phone number received as input. It can be received either in plain text or hashed format.
+  - name: Phone number share
+    description: API operation to return the phone number associated to the access token.
+paths:
+  /verify:
+    post:
+      tags:
+        - Phone number verify
+      summary: Verifies if the received hashed/plain text phone number matches the phone number associated with the access token
+      description: |
+        Verifies if the specified phone number (either in plain text or hashed format) matches the one that the user is currently using. Only one of the plain or hashed formats must be provided.
+        - The number verification will be done for the user that has authenticated via mobile network
+        - It returns true/false depending on if the hashed phone number received as input matches the authenticated user's `device phone number` associated to the access token
+      operationId: phoneNumberVerify
+      parameters:
+        - in: header
+          name: x-correlator
+          required: false
+          description: Correlation id for the different services
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NumberVerificationRequestBody'
+        required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-correlator:
+              description: Correlation id for the different services
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumberVerificationMatchResponse'
+        '400':
+          $ref: '#/components/responses/Generic400'
+        '401':
+          $ref: '#/components/responses/Generic401'
+        '403':
+          $ref: '#/components/responses/PhoneNumberVerificationPermissionDenied403'
+        '500':
+          $ref: '#/components/responses/Generic500'
+        '503':
+          $ref: '#/components/responses/Generic503'
+        '504':
+          $ref: '#/components/responses/Generic504'
+      security:
+        - openId:
+            - number-verification:verify
+  /device-phone-number:
+    get:
+      tags:
+        - Phone number share
+      summary: Returns the phone number associated with the access token
+      description: |
+        Returns the phone number so the API clients can verify the number themselves:
+        - It will be done for the user that has authenticated via mobile network
+        - It returns the authenticated user's `device phone number` associated to the access token
+      operationId: phoneNumberShare
+      parameters:
+        - in: header
+          name: x-correlator
+          required: false
+          description: Correlation id for the different services
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-correlator:
+              description: Correlation id for the different services
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumberVerificationShareResponse'
+        '400':
+          $ref: '#/components/responses/Generic400'
+        '401':
+          $ref: '#/components/responses/Generic401'
+        '403':
+          $ref: '#/components/responses/PhoneNumberVerificationPermissionDenied403'
+        '500':
+          $ref: '#/components/responses/Generic500'
+        '503':
+          $ref: '#/components/responses/Generic503'
+        '504':
+          $ref: '#/components/responses/Generic504'
+      security:
+        - openId:
+            - number-verification:device-phone-number:read
+components:
+  securitySchemes:
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+  headers:
+    x-correlator:
+      description: Correlation id for the different services
+      schema:
+        type: string
+  schemas:
+    NumberVerificationRequestBody:
+      type: object
+      description: Payload to verify the phone number.
+      minProperties: 1
+      maxProperties: 1
+      properties:
+        phoneNumber:
+          type: string
+          pattern: '^\+[1-9][0-9]{4,14}$'
+          example: '+123456789'
+          description: A public identifier addressing a telephone subscription. In mobile networks it corresponds to the MSISDN (Mobile Station International Subscriber Directory Number). In order to be globally unique it has to be formatted in international format, according to E.164 standard, prefixed with '+'.
+        hashedPhoneNumber:
+          description: Hashed phone number. SHA-256 (in hexadecimal representation) of the mobile phone number in **E.164 format (starting with country code)**. Prefixed with '+'.
+          type: string
+          example: 32f67ab4e4312618b09cd23ed8ce41b13e095fe52b73b2e8da8ef49830e50dba
+    NumberVerificationMatchResponse:
+      type: object
+      description: Number verification result
+      required:
+        - devicePhoneNumberVerified
+      properties:
+        devicePhoneNumberVerified:
+          $ref: '#/components/schemas/DevicePhoneNumberVerified'
+    NumberVerificationShareResponse:
+      type: object
+      description: Number verification share result
+      required:
+        - devicePhoneNumber
+      properties:
+        devicePhoneNumber:
+          $ref: '#/components/schemas/DevicePhoneNumber'
+    DevicePhoneNumber:
+      type: string
+      pattern: '^\+[1-9][0-9]{4,14}$'
+      example: '+123456789'
+      description: A public identifier addressing a telephone subscription. In mobile networks it corresponds to the MSISDN (Mobile Station International Subscriber Directory Number). In order to be globally unique it has to be formatted in international format, according to E.164 standard, prefixed with '+'.
+    DevicePhoneNumberVerified:
+      description: Number verification. True, if it matches
+      type: boolean
+    ErrorInfo:
+      type: object
+      required:
+        - status
+        - code
+        - message
+      properties:
+        status:
+          type: integer
+          description: HTTP response status code
+        code:
+          type: string
+          description: Code given to this error
+        message:
+          type: string
+          description: Detailed error description
+  responses:
+    Generic400:
+      description: Problem with the client request
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          example:
+            status: 400
+            code: INVALID_ARGUMENT
+            message: Client specified an invalid argument, request body or query param
+    Generic401:
+      description: Unauthorized
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          examples:
+            GENERIC_401_UNAUTHENTICATED:
+              description: Request cannot be authenticated
+              value:
+                status: 401
+                code: UNAUTHENTICATED
+                message: Request not authenticated due to missing, invalid, or expired credentials.
+            GENERIC_401_AUTHENTICATION_REQUIRED:
+              description: New authentication is needed, authentication is no longer valid
+              value:
+                status: 401
+                code: AUTHENTICATION_REQUIRED
+                message: New authentication is required.
+    PhoneNumberVerificationPermissionDenied403:
+      description: |
+        Client does not have sufficient permission.
+        In addition to regular scenario of `PERMISSION_DENIED`, other scenarios may exist:
+          - Client authentication was not via mobile network. In order to check the authentication method, AMR parameter value in the 3-legged user's access token can be used and make sure that the authentication was not either by SMS+OTP nor username/password (`{"code": "NUMBER_VERIFICATION.USER_NOT_AUTHENTICATED_BY_MOBILE_NETWORK","message": "Client must authenticate via the mobile network to use this service"}`)
+          - Phone number cannot be deducted from access token context.(`{"code": "INVALID_TOKEN_CONTEXT","message": "Phone number cannot be deducted from access token context"}`)
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          examples:
+            GENERIC_403_PERMISSION_DENIED:
+              description: Permission denied. OAuth2 token access does not have the required scope or when the user fails operational security
+              value:
+                status: 403
+                code: PERMISSION_DENIED
+                message: Client does not have sufficient permissions to perform this action.
+            GENERIC_403_USER_NOT_AUTHENTICATED_BY_MOBILE_NETWORK:
+              value:
+                status: 403
+                code: NUMBER_VERIFICATION.USER_NOT_AUTHENTICATED_BY_MOBILE_NETWORK
+                message: Client must authenticate via the mobile network to use this service
+            GENERIC_403_INVALID_TOKEN_CONTEXT:
+              value:
+                status: 403
+                code: INVALID_TOKEN_CONTEXT
+                message: Phone number cannot be deducted from access token context
+    Generic500:
+      description: Server error
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          example:
+            status: 500
+            code: INTERNAL
+            message: Server error
+    Generic503:
+      description: Service unavailable. Typically the server is down.
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          example:
+            status: 503
+            code: UNAVAILABLE
+            message: Service unavailable
+    Generic504:
+      description: Request time exceeded. If it happens repeatedly, consider reducing the request complexity
+      headers:
+        x-correlator:
+          $ref: "#/components/headers/x-correlator"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorInfo'
+          example:
+            status: 504
+            code: TIMEOUT
+            message: Request timeout exceeded. Try later.
+externalDocs:
+  description: Project documentation at CAMARA
+  url: https://github.com/camaraproject/NumberVerification
