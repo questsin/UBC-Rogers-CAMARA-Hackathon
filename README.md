@@ -44,18 +44,16 @@ curl -X POST "{basename}/number-verification/v0/verify" \
 
 Access tokens are required to access the Rogers APIs. During the hackathon, each team will receive a test device and SIM card. The test device will contain a RAPID shortcut app that will display your access token. APIs and access tokens will be restricted to only validate the phone number associated with the SIM card provided to your team.
 
-```bash
-
 ## In the News
 
-https://mobilesyrup.com/2023/03/01/rogers-and-microsoft-enter-new-5g-partnership/
+* https://mobilesyrup.com/2023/03/01/rogers-and-microsoft-enter-new-5g-partnership/
 
 ## Quick Links/Resources
 
-Ecosystem Documentation (GSMA, CAMARA, TMF) - https://www.gsma.com/solutions-and-impact/technologies/networks/wp-content/uploads/2023/05/The-Ecosystem-for-Open-Gateway-NaaS-API-development.pdf
+* Ecosystem Documentation (GSMA, CAMARA, TMF) - https://www.gsma.com/solutions-and-impact/technologies/networks/wp-content/uploads/2023/05/The-Ecosystem-for-Open-Gateway-NaaS-API-development.pdf
 
-Open API - https://www.openapis.org/
+* Open API - https://www.openapis.org/
 
-API as a Service - https://backendless.com/what-is-api-as-a-service/
+* API as a Service - https://backendless.com/what-is-api-as-a-service/
 
-System Design - https://github.com/donnemartin/system-design-primer
+* System Design - https://github.com/donnemartin/system-design-primer
