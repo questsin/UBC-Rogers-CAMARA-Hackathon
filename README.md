@@ -10,18 +10,19 @@ CAMARA’s official documentation provides you with all information you need to 
 
 ## Rogers CAMARA APIs
 
-* NumberVerify - https://camaraproject.org/number-verification/ 
-* SIMSWAP - https://camaraproject.org/sim-swap/
-* OTP - https://camaraproject.org/number-verification-sms-2fa/
-* Location - https://camaraproject.org/device-location/
-* QoD - https://camaraproject.org/quality-on-demand/
+* Curent
+  * NumberVerify - https://camaraproject.org/number-verification/ 
+  * SIMSWAP - https://camaraproject.org/sim-swap/
+  * Location - https://camaraproject.org/device-location/
+* Future
+  * OTP - https://camaraproject.org/number-verification-sms-2fa/
+  * QoD - https://camaraproject.org/quality-on-demand/
 
 ## Roger's Sample Test Cases
 
 * [NumberVerify](tests/test-api-location-verification.html)
-* [OTP](tests/test-api-one-time-password.html)
 * [Location](tests/test-api-location-verification.html)
-* [QoD](tests/test-api-qod.html)
+* [SIMSWAP](tests/test-api-sim-swap.html)
 
 ## Subscriber Consent
 
