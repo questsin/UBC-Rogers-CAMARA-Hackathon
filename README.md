@@ -1,5 +1,15 @@
-# UBC-Rogers-CAMARA-Hackathon
-UBC Rogers CAMARA Hackathon
+# UBC Rogers CAMARA Hackathon
+
+- [UBC Rogers CAMARA Hackathon](#ubc-rogers-camara-hackathon)
+- [CAMARA Project](#camara-project)
+  - [Rogers CAMARA APIs](#rogers-camara-apis)
+  - [Roger's Sample Test Cases](#rogers-sample-test-cases)
+  - [Subscriber Consent](#subscriber-consent)
+  - [Getting Started](#getting-started)
+  - [Access Tokens](#access-tokens)
+  - [Sandbox](#sandbox)
+  - [In the News](#in-the-news)
+  - [Quick Links/Resources](#quick-linksresources)
 
 # CAMARA Project
 
@@ -44,6 +54,13 @@ curl -X POST "{basename}/number-verification/v0/verify" \
 ## Access Tokens
 
 Access tokens are required to access the Rogers APIs. During the hackathon, each team will receive a test device and SIM card. The test device will contain a RAPID shortcut app that will display your access token. APIs and access tokens will be restricted to only validate the phone number associated with the SIM card provided to your team.
+
+## Sandbox
+
+Currently we have an Azure sandbox proxying the requests to the CAMARA APIs. The sandbox is available at https://sandbox.camaraproject.org/. The sandbox is a temporary solution and will be replaced with a Azure Programmable Connectivity (APC). This can also be used to troubleshoot any issues with the APIs. 
+
+* [Sandbox](https://lemon-bush-0e5bf4e0f.5.azurestaticapps.net/) - https://lemon-bush-0e5bf4e0f.5.azurestaticapps.net/
+* basename: https://pplx.azurewebsites.net/api/rapid/v0/
 
 ## In the News
 
