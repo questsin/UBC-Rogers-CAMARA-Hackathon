@@ -66,6 +66,9 @@
             publicPort: 59765
         }
     };
+
+    const maxAge = 100;
+
     const area = {
         type: 'Circle',
         location: {
@@ -76,7 +79,7 @@
     };
 
     const expectedResponse = {
-      verificationResult: 'TRUE',
+        verificationResult: 'TRUE',
     };
 
     const device2 = {
@@ -84,23 +87,23 @@
     };
 
     const expectedResponse2 = {
-      verificationResult: 'PARTIAL',
-      matchRate: 74,
+        verificationResult: 'PARTIAL',
+        matchRate: 74,
     };
 
     const area3 = {
-      type: 'Circle',
-      location: {
-        latitude: 50.735851,
-        longitude: 7.10066
-      },
-      accuracy: -10 // Invalid accuracy
+        type: 'Circle',
+        location: {
+            latitude: 50.735851,
+            longitude: 7.10066
+        },
+        accuracy: -10 // Invalid accuracy
     };
 
     const expectedResponse3 = {
-      status: 400,
-      code: 'INVALID_ARGUMENT',
-      message: 'Invalid input',
+        status: 400,
+        code: 'INVALID_ARGUMENT',
+        message: 'Invalid input',
     };
 
 
@@ -211,7 +214,25 @@
                     }
                 });
                 expect(response.status).to.equal(200);
-                expect(response.data.verificationResult).to.be.a('string');
+                expect(response.data.verificationResult).to.be.a('boolean');
+            });
+
+            it("Successful verification with maxAge should return 200 OR 422", async function () {
+                try {
+                    let response = await axios.post(`${baseURL}/verifications`, {
+                        device: device,
+                        area: area,
+                        maxAge: maxAge
+                    }, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+                    expect(response.status).to.equal(200);
+                    expect(response.data.verificationResult).to.be.a('boolean');
+                } catch (error) {
+                    expect(error.response.status).to.equal(422);
+                }
             });
 
             it("Invalid device should return 404", async function () {
@@ -255,6 +276,20 @@
                 } catch (error) {
                     expect(error.response.status).to.equal(400);
                 }
+            });
+
+            it("Invalid accuracy parameter should return 200 with false", async function () {
+                let response = await axios.post(`${baseURL}/verifications`, {
+                    device: device,
+                    area: area3
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                expect(response.status).to.equal(200);
+                expect(response.data.verificationResult).to.be.a('boolean');
+                expect(response.data.verificationResult).equal(false);
             });
         });
     });
