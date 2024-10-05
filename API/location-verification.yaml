@@ -123,7 +123,7 @@ paths:
                     phoneNumber: "+123456789"
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
                     radius: 50000
@@ -138,7 +138,7 @@ paths:
                       publicPort: 1234
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
                     radius: 50000
@@ -148,7 +148,7 @@ paths:
                 value:
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
                     radius: 50000
@@ -265,7 +265,7 @@ components:
             - radius
       example:
         areaType: CIRCLE
-        center:
+        location:
           latitude: 50.735851
           longitude: 7.10066
         radius: 50000
