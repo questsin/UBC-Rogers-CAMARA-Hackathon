@@ -123,10 +123,10 @@ paths:
                     phoneNumber: "+123456789"
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
-                    radius: 50000
+                    accuracy: 50000
                   maxAge: 120
               INPUT_IP_ADDRESS_V4_CIRCLE:
                 summary: IPv4 address, circle, without maxAge
@@ -138,20 +138,20 @@ paths:
                       publicPort: 1234
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
-                    radius: 50000
+                    accuracy: 50000
               INPUT_NO_DEVICE:
                 summary: Device not provided
                 description: The device has to be deducted from token
                 value:
                   area:
                     areaType: CIRCLE
-                    center:
+                    location:
                       latitude: 50.735851
                       longitude: 7.10066
-                    radius: 50000
+                    accuracy: 50000
                   maxAge: 120
       responses:
         "200":
@@ -265,7 +265,7 @@ components:
             - radius
       example:
         areaType: CIRCLE
-        center:
+        location:
           latitude: 50.735851
           longitude: 7.10066
         radius: 50000
