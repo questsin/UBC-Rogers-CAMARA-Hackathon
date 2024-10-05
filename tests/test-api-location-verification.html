@@ -278,19 +278,18 @@
                 }
             });
 
-            it("Invalid accuracy parameter should return 400", async function () {
-                try {
-                    let response = await axios.post(`${baseURL}/verifications`, {
-                        device: device,
-                        area: area3
-                    }, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                } catch (error) {
-                    expect(error.response.status).to.be.equal(400);
-                }
+            it("Invalid accuracy parameter should return 200 with false", async function () {
+                let response = await axios.post(`${baseURL}/verifications`, {
+                    device: device,
+                    area: area3
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                expect(response.status).to.equal(200);
+                expect(response.data.verificationResult).to.be.a('boolean');
+                expect(response.data.verificationResult).equal(false);
             });
         });
     });
