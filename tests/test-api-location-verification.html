@@ -211,7 +211,7 @@
                     }
                 });
                 expect(response.status).to.equal(200);
-                expect(response.data.verificationResult).to.be.a('string');
+                expect(response.data.verificationResult).to.be.a('boolean');
             });
 
             it("Invalid device should return 404", async function () {
