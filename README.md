@@ -57,7 +57,7 @@ Access tokens are required to access the Rogers APIs. During the hackathon, each
 
 ## Sandbox
 
-Currently we have an Azure sandbox proxying the requests to the CAMARA APIs. The sandbox is available at https://sandbox.camaraproject.org/. The sandbox is a temporary solution and will be replaced with a Azure Programmable Connectivity (APC). This can also be used to troubleshoot any issues with the APIs. 
+Currently we have an Azure sandbox proxying the requests to the CAMARA APIs. The sandbox is available at https://lemon-bush-0e5bf4e0f.5.azurestaticapps.net/. The sandbox is a temporary solution and will be replaced with a Azure Programmable Connectivity (APC). This can also be used to troubleshoot any issues with the APIs. 
 
 * [Sandbox](https://lemon-bush-0e5bf4e0f.5.azurestaticapps.net/) - https://lemon-bush-0e5bf4e0f.5.azurestaticapps.net/
 * basename: https://pplx.azurewebsites.net/api/rapid/v0/
