@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mocha@8.1.3/mocha.min.css">
+    <title>Tests</title>
+</head>
+
+<body>
+    <pre>
+        Feature: Number Verification
+
+        Background:
+          Given the Number Verification API is available
+      
+        Scenario: Verify phone number
+          Given a valid hashed/plain text phone number
+          When a request is made to verify the phone number
+          Then the system should respond with true/false if the hashed phone number matches the authenticated user's device phone number
+      
+        Scenario: Share phone number
+          When a request is made to retrieve the phone number associated with the access token
+          Then the system should respond with the authenticated user's device phone number       
+    </pre>
+
+    <div>
+        <label for="accessToken">Access Token:</label>
+        <input type="text" id="accessToken" placeholder="Enter your access token:" />
+        <br>
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="number" id="phoneNumber" placeholder="Enter your phone number:" />
+        <br>
+        <button id="runTest">Run Test</button>
+    </div>
+
+    <div id="mocha"></div>
+
+
+</body>
+
+<div id="output"></div>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.2.0/mocha.min.js"
+    integrity="sha512-jsP/sG70bnt0xNVJt+k9NxQqGYvRrLzWhI+46SSf7oNJeCwdzZlBvoyrAN0zhtVyolGcHNh/9fEgZppG2pH+eA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/chai@4.2.0/chai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+
+    function reloadMochaScript() {
+        const oldScript = document.querySelector("script[src*='mocha']");
+        oldScript.remove(); // Remove existing Mocha script
+
+        const newScript = document.createElement('script');
+        newScript.src = "https://cdnjs.cloudflare.com/ajax/libs/mocha/10.2.0/mocha.min.js";
+        document.body.appendChild(newScript); // Re-add the script
+    }
+    
+    mocha.setup("bdd");
+    mocha.timeout(20000);
+    const expect = chai.expect;
+
+    const version = "0.3.1"; // supported spec version
+
+    const apiRoot = "https://pplx.azurewebsites.net";
+    const basePath = "api/rapid/v0/numberVerification";
+    const baseURL = `${apiRoot}/${basePath}`;
+    const api = "/verify";
+    let token = "Bearer {your_access_token}";
+    let validPhoneNumber = "00000000000";
+
+    document.getElementById('runTest').addEventListener('click', async () => {
+        // Get the user input values
+        token = "Bearer " + document.getElementById('accessToken').value;
+        validPhoneNumber = document.getElementById('phoneNumber').value;
+
+        // Clear outputs
+        document.getElementById('mocha').innerHTML = '';
+        document.getElementById('output').innerHTML = '';
+        // mocha.suite.suites = []; // Reset Mocha's test suite
+
+        reloadMochaScript();
+        mocha.setup('bdd');
+        mocha.timeout(20000);
+        mocha.run();
+
+        // Test Suite
+        describe("Number Verification API Tests", function () {
+            describe("Security Tests", function () {
+                // check with token should return 200
+                it("should return 200", async () => {
+                    const response = await axios.get(baseURL + api, {
+                        headers: {
+                            Authorization: token,
+                        },
+                    });
+                    //console.log(response.data);
+                    expect(response.status).to.equal(200);
+
+                });
+
+                // check with blank token should not return 200
+                it("should not return 200", async () => {
+                    const response = await axios.get(baseURL + api, {
+                    headers: {
+                        Authorization: "",
+                    },
+                    });
+                    //console.log(response.data);
+                    expect(response.data.status).to.not.equal(200);
+                });
+
+                // Get the output div
+                const outputDiv = document.getElementById('output');
+
+// Print the response data to the div
+outputDiv.innerHTML = `<pre>${JSON.stringify(response.data, null, 2)}</pre>`;
+            });
+
+            // Tests for specific URI like /verifications
+            const phoneNumberVerifyAPI = `${baseURL}/verify`;
+            const phoneNumberShareAPI = `${baseURL}/device-phone-number`;
+
+            describe("Consent Tests", function () {
+            // check with token should return 200
+            it("should return 200", async () => {
+                //const response = await axios.get(baseURL + api, {
+                const response = await axios.get(baseURL + api + "?phoneNumber=" + validPhoneNumber , {
+                    headers: {
+                        Authorization: token,
+                    },
+                });
+                //console.log(response.data);
+                expect(response.data.status).to.equal(200);
+            });
+
+            it("negative test, should return 401", async () => {
+                //const response = await axios.get(baseURL + api, {
+                const response = await axios.get(baseURL + api + "?phoneNumber=XXX", {
+                    headers: {
+                        Authorization: token,
+                    },
+                });
+                //console.log(response.data);
+                expect(response.data.status).to.equal(401);
+            });
+
+            })
+
+            describe("Number Verification API Test Suite", () => {
+            describe("POST /verify", () => {
+                it("should return true when phoneNumber matches", async () => {
+                const response = await axios.post(phoneNumberVerifyAPI, {
+                    phoneNumber: validPhoneNumber,
+                }, {
+                    headers: {
+                    Authorization: token,
+                    },
+                });
+                console.log(response.data);
+                expect(response.status).to.eql(200);
+                expect(response.data.devicePhoneNumberVerified).to.be.true;
+                });
+            });
+            describe("POST /device-phone-number", () => {
+                it("should return the device phone number", async () => {
+                const response = await axios.post(phoneNumberShareAPI, {
+                    phoneNumber: validPhoneNumber,
+                }, {
+                    headers: {
+                    Authorization: token,
+                    },
+                });
+                console.log(response.data);
+                expect(response.status).to.eql(200);
+                expect(response.data.devicePhoneNumber).to.eql(validPhoneNumber);
+                });
+            });
+            });
+        
+            // Performance test
+            describe("Performance tests", () => {
+            it("should complete the API requests within a specific time", function (done) {
+                this.timeout(2000); // Set timeout to 2000 ms
+                axios
+                .get(baseURL + api, {
+                    headers: {
+                    Authorization: token,
+                    },
+                })
+                .then((response) => {
+                    expect(response.status).to.equal(200);
+                    done();
+                });
+                });
+            });
+        });
+    });
+
+
+</script>

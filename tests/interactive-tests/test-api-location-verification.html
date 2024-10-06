@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mocha@8.1.3/mocha.min.css">
+    <title>Tests</title>
+</head>
+
+<body>
+    <pre>
+        Background:
+        Given the API root is "http://localhost:9091"
+        And the base path is "location-verification/v0"
+    
+      Scenario: Execute location verification for a user equipment
+        Given a device and a circular area
+        When I execute the location verification request
+        Then the response should have a verification result of "TRUE"
+    
+      Scenario: Execute location verification for a user equipment partially
+    
+    </pre>
+
+    <div>
+        <label for="accessToken">Access Token:</label>
+        <input type="text" id="accessToken" placeholder="Enter your access token:" />
+        <br>
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="number" id="phoneNumber" placeholder="Enter your phone number:" />
+        <br>
+        <label for="latitude">Latitude:</label>
+        <input type="number" id="latitude" placeholder="Enter latitude:" />
+        <label for="longitude">Longitude:</label>
+        <input type="number" id="longitude" placeholder="Enter longitude:" />
+        <label for="accuracy">Accuracy:</label>
+        <input type="number" id="accuracy" placeholder="Enter accuracy:" />
+        <br>
+        <button id="runTest">Run Test</button>
+    </div>
+
+    <div id="mocha"></div>
+
+
+</body>
+
+<div id="location"></div>
+
+<div id="output"></div>
+
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.2.0/mocha.min.js"
+    integrity="sha512-jsP/sG70bnt0xNVJt+k9NxQqGYvRrLzWhI+46SSf7oNJeCwdzZlBvoyrAN0zhtVyolGcHNh/9fEgZppG2pH+eA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/chai@4.2.0/chai.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+
+    function reloadMochaScript() {
+        const oldScript = document.querySelector("script[src*='mocha']");
+        oldScript.remove(); // Remove existing Mocha script
+
+        const newScript = document.createElement('script');
+        newScript.src = "https://cdnjs.cloudflare.com/ajax/libs/mocha/10.2.0/mocha.min.js";
+        document.body.appendChild(newScript); // Re-add the script
+    }
+
+    mocha.setup('bdd');
+    mocha.timeout(20000);
+    
+    const expect = chai.expect;
+
+    const version = "0.3.1"; // supported spec version
+
+    const apiRoot = "https://pplx.azurewebsites.net";
+    const basePath = "api/rapid/v0/location-verification";
+    const baseURL = `${apiRoot}/${basePath}`;
+    const api = "/verify";
+    let token = "Bearer {your_access_token}";
+    let validPhoneNumber = "00000000000";
+
+    let device = {
+        phoneNumber: validPhoneNumber,
+    };
+
+    let area = {
+        type: "Circle",
+        location: {
+        latitude: 50.735851,
+        longitude: 7.10066,
+        },
+        accuracy: 50,
+    };
+
+    document.getElementById('runTest').addEventListener('click', async () => {
+        // Get the user input values
+        token = "Bearer " + document.getElementById('accessToken').value;
+        validPhoneNumber = document.getElementById('phoneNumber').value;
+        lat = document.getElementById('latitude').value;
+        long = document.getElementById('longitude').value;
+        acc = document.getElementById('accuracy').value;
+
+        device = {
+            phoneNumber: validPhoneNumber,
+        };
+
+        area = {
+            type: "Circle",
+            location: {
+            latitude: lat,
+            longitude: long,
+            },
+            accuracy: acc,
+        };
+
+        // Clear outputs
+        document.getElementById('mocha').innerHTML = '';
+        document.getElementById('output').innerHTML = '';
+        document.getElementById('location').innerHTML = '';
+        // mocha.suite.suites = []; // Reset Mocha's test suite
+
+        reloadMochaScript();
+        mocha.setup('bdd');
+        mocha.timeout(20000);
+        mocha.run();
+    
+        // Test Suite
+        describe("Device location verification API Tests", function () {
+            describe("Security Tests", function () {
+            // check with token should return 200
+            it("should return 200", async () => {
+                const response = await axios.get(baseURL + api, {
+                headers: {
+                    Authorization: token,
+                },
+                });
+                //console.log(response.data);
+                expect(response.status).to.equal(200);
+
+                // Get the output div
+                const outputDiv = document.getElementById('output');
+
+                // Print the response data to the div
+                outputDiv.innerHTML = `<pre>${JSON.stringify(response.data, null, 2)}</pre>`;
+                
+            });
+
+            // check with blank token should not return 200
+            it("should not return 200", async () => {
+                const response = await axios.get(baseURL + api, {
+                headers: {
+                    Authorization: "",
+                },
+                });
+                //console.log(response.data);
+                expect(response.data.status).to.not.equal(200);
+            });
+            });
+
+            describe("Consent (POST) Tests", function () {
+            it("return 200", async function () {
+                let response = await axios.post(
+                `${baseURL}/verify`,
+                {
+                    device: device,
+                    //area: area,
+                },
+                {
+                    headers: {
+                    Authorization: `${token}`,
+                    },
+                }
+                );
+                console.log(response.data);
+                expect(response.status).to.equal(200);
+            });
+            })
+
+            describe("Performance tests", () => {
+            it("should complete the API requests within a specific time", function (done) {
+                this.timeout(2000); // Set timeout to 2000 ms
+                axios
+                .get(baseURL + api, {
+                    headers: {
+                    Authorization: token,
+                    },
+                })
+                .then((response) => {
+                    //console.log(response.data);
+                    expect(response.status).to.equal(200);
+                    done();
+                });
+                });
+            });
+            
+            // Tests for specific URI like /verifications
+            describe("Location Verification", function () {
+            it("Successful verification should return 200", async function () {
+                let response = await axios.post(
+                `${baseURL}/verify`,
+                {
+                    phoneNumber: validPhoneNumber,
+                    device: device,
+                    area: area,
+                },
+                {
+                    headers: {
+                    Authorization: `${token}`,
+                    },
+                }
+                );
+                //console.log(response.data);
+                expect(response.status).to.equal(200);
+                expect(response.data.verificationResult).to.be.a("boolean");
+                // Get the output div
+                const outputDiv = document.getElementById('location');
+
+                // Print the response data to the div
+                outputDiv.innerHTML = `<pre>${`Near Location: ${response.data.verificationResult}`}</pre>`;
+            });
+            
+            
+            });
+        });
+    });
+
+</script>
