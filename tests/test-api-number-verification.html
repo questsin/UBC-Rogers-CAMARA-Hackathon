@@ -74,6 +74,25 @@
                 token = response.data.token;
                 expect(token).to.be.a('string');
             });
+
+
+            it("Successful Phone Number Authentication", async function () {
+                const headers = {
+                    "Authorization": `Bearer ${token}`,
+                    "Cache-Control": "no-cache",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                };
+                const data = {
+                    phoneNumber: `${phoneNumber}`
+                };
+                const url = `${baseURL}/api/rapid/v0/numberVerification/verify`
+                let response = await axios.post(url, data, { headers })
+
+                expect(response.status).to.equal(200);
+                expect(response).to.have.property("devicePhoneNumberVerified");
+                expect(response.devicePhoneNumberVerified).to.equal(true);
+        });
         });
 
         // Authorization test case
